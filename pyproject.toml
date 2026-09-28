@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "twquote"
+version = "0.1.0"
+description = "台股盤中報價 CLI（證交所 MIS 快照，零相依）"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+twquote = "twquote.cli:main"
+
+[tool.setuptools]
+packages = ["twquote", "twquote.sources"]
