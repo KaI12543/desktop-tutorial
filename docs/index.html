@@ -13,30 +13,50 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#3a2e2a;--paper:#fffdf9;--bg:#f7f1e8;--muted:#6f6058;--pink:#b4456b}
+:root{--ink:#3a2e2a;--paper:#fffdf9;--bg:#f7f1e8;--muted:#6f6058;--pink:#b4456b;--good:#2f8a5a;--bad:#c0392b}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
 body{font-family:'DotGothic16','PingFang TC','Noto Sans TC',monospace;padding:calc(20px + env(safe-area-inset-top)) 16px calc(36px + env(safe-area-inset-bottom));display:flex;justify-content:center;-webkit-user-select:none;user-select:none}
-.wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px}
+.wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{margin:0;font-size:28px;font-weight:400;letter-spacing:2px}
 .mood{padding:6px 10px;background:#f8dbe3;border:3px solid var(--ink);font-size:14px;white-space:nowrap}
 .panel{background:var(--paper);border:3px solid var(--ink);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .pix{image-rendering:pixelated;image-rendering:crisp-edges}
+[hidden]{display:none !important}
+
+.scorebar{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;flex-direction:row}
+.scorebar .pts{font-size:22px;min-width:3ch}
+.scorebar .lv{flex:1;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.lvbar{height:8px;background:#eee4d8}
+.lvbar i{display:block;height:100%;background:#e8829f;width:0}
+.icon-btn{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--paper);border:3px solid var(--ink);box-shadow:2px 2px 0 var(--ink);padding:0;cursor:pointer;-webkit-appearance:none;appearance:none;border-radius:0;color:var(--ink)}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+.wish{flex-direction:row;align-items:center;gap:12px;padding:10px 14px;min-height:62px}
+.wish.active{background:#fff4d6}
+.wish .wicon{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border:3px solid var(--ink);background:var(--paper)}
+.wish .wbody{flex:1;display:flex;flex-direction:column;gap:5px;font-size:15px}
+.wish .wsub{font-size:12px;color:var(--muted)}
+.timer{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:2px;height:6px}
+.timer i{background:#eee4d8}
+.timer i.on{background:#e39a4f}
+.timer.low i.on{background:var(--bad)}
+.streak{font-size:13px;color:var(--pink);white-space:nowrap}
 
 .room{position:relative;height:360px;overflow:hidden;border:3px solid var(--ink);background:#f3ebdf}
 .floor{position:absolute;left:0;right:0;bottom:0;height:108px;background:#e6dccd;border-top:3px solid var(--ink)}
 .floorline{position:absolute;left:0;right:0;bottom:54px;height:3px;background:#d8ccb9}
 .frame{position:absolute;right:14px;top:14px;margin:0;padding:4px;background:var(--paper);border:3px solid var(--ink)}
 .frame img{display:block;width:48px;height:64px}
-.bubble{position:absolute;left:50%;top:18px;transform:translateX(-50%);max-width:48%;min-width:96px;padding:8px 12px;background:var(--paper);border:3px solid var(--ink);font-size:15px;line-height:1.35;text-align:center}
+.bubble{position:absolute;left:50%;top:18px;transform:translateX(-50%);max-width:50%;min-width:96px;padding:8px 12px;background:var(--paper);border:3px solid var(--ink);font-size:15px;line-height:1.35;text-align:center;z-index:3}
 .bubble::before,.bubble::after{content:"";position:absolute;left:50%;width:6px;height:6px;background:var(--ink)}
 .bubble::before{bottom:-9px;margin-left:-3px}
 .bubble::after{bottom:-15px;margin-left:3px}
 
-.chair{display:none}
-.room.on-chair .chair{display:block}
-.room.on-chair .box{display:none}
+.chair,.box{display:none}
+.room.p-lie .chair{display:block}
+.room.p-sit .box{display:block}
 .chair .foot{position:absolute;left:50%;bottom:20px;width:152px;height:8px;margin-left:-76px;background:#8d8780}
 .chair .stem{position:absolute;left:50%;bottom:28px;width:8px;height:24px;margin-left:-4px;background:#8d8780}
 .cord{background:repeating-linear-gradient(90deg,#efe6d6 0 6px,#e7dcc9 6px 8px);border:3px solid var(--ink);position:absolute;left:50%}
@@ -45,30 +65,40 @@ h1{margin:0;font-size:28px;font-weight:400;letter-spacing:2px}
 .tuft{position:absolute;top:30px;width:8px;height:8px;background:#c9bba4}
 .seat .seam{position:absolute;left:0;right:0;top:30px;height:3px;background:#ddd1bd}
 .box{position:absolute;left:50%;bottom:20px;margin-left:-108px;width:216px;height:64px;background:#f1b2c3;border:3px solid var(--ink);border-top:16px solid #d98aa2;pointer-events:none}
+.shadow{position:absolute;left:50%;bottom:20px;height:8px;background:#d8ccb9;display:none}
+.room.p-stand .shadow,.room.p-roll .shadow{display:block}
 
 .cat{position:absolute;left:50%;padding:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;transform:translateX(-50%)}
 .cat canvas{display:block;transform-origin:50% 100%}
-.cat:focus-visible,.act:focus-visible{outline:3px dashed #c4507a;outline-offset:3px}
+.cat:focus-visible,.act:focus-visible,.icon-btn:focus-visible{outline:3px dashed #c4507a;outline-offset:3px}
 .a-breathe{animation:breathe 2.4s steps(1) infinite}
 .a-sleep{animation:breathe 3.6s steps(1) infinite}
 .a-wiggle{animation:wiggle .5s steps(1) 3}
 .a-bob{animation:bob .4s steps(1) infinite}
 .a-jump{animation:jump .9s steps(4) 2}
+.a-roll{animation:rollw .6s steps(1) infinite}
+.a-beg{animation:hop 1s steps(1) infinite}
+.a-shake{animation:wiggle .2s steps(1) 4}
 @keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes wiggle{0%,100%{transform:translateX(0)}33%{transform:translateX(-4px)}66%{transform:translateX(4px)}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes jump{0%,100%{transform:translateY(0)}35%,65%{transform:translateY(-40px)}}
+@keyframes rollw{0%,100%{transform:translateX(0) rotate(0)}50%{transform:translateX(6px) rotate(3deg)}}
 @keyframes floatUp{0%{opacity:0;transform:translateY(0)}15%{opacity:1}100%{opacity:0;transform:translateY(-96px)}}
 @keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(24px,-56px)}}
 @keyframes sway{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
 @keyframes poke{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px)}}
 .fx{position:absolute;opacity:0;animation:floatUp 1.4s steps(7) forwards;pointer-events:none}
 .z{position:absolute;font-size:16px;color:#5b6f9e;animation:zz 2.4s steps(6) infinite;opacity:0;pointer-events:none}
 .wand{position:absolute;right:20px;top:132px;animation:sway .5s steps(1) infinite;pointer-events:none}
 .hand{position:absolute;animation:poke .5s steps(1) infinite;pointer-events:none}
 .dish{position:absolute;left:14px;bottom:16px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .dish div{width:48px;height:14px;background:#8ec5e3;border:3px solid var(--ink)}
-[hidden]{display:none !important}
+.toast{position:absolute;left:50%;top:96px;z-index:4;padding:4px 10px;border:3px solid var(--ink);background:var(--paper);font-size:20px;animation:toast 1.6s steps(8) forwards;pointer-events:none;white-space:nowrap}
+.toast.good{color:var(--good)}
+.toast.bad{color:var(--bad)}
 
 .stat{display:grid;grid-template-columns:40px minmax(0,1fr) 32px;align-items:center;gap:10px;font-size:14px}
 .bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px;height:10px}
@@ -78,13 +108,21 @@ h1{margin:0;font-size:28px;font-weight:400;letter-spacing:2px}
 nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .act{font:inherit;font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 4px 10px;min-height:72px;background:var(--paper);color:var(--ink);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);border-radius:0;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none}
 .act:active{transform:translate(3px,3px);box-shadow:none}
+.act.wanted{background:#fff4d6}
+
+h2.sec{margin:0;font-size:15px;font-weight:400}
+.dex{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.dex figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;text-align:center}
+.dex .slot{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#f3ebdf;border:3px solid var(--ink)}
+.dex canvas{max-width:86%;max-height:86%}
+.dex figcaption{color:var(--muted);line-height:1.3}
 
 .love-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
 .love-head span:last-child{color:var(--pink);font-size:13px}
 .hearts{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
 .hearts svg{width:100%;height:auto;color:#eaddd2}
 .hearts svg.on{color:#d9607f}
-.note{font-size:13px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);line-height:1.5}
 .reveal{align-items:center;text-align:center;padding:16px;gap:10px}
 .reveal img{width:168px;height:224px;border:3px solid var(--ink)}
 .reveal h2{margin:0;font-size:22px;font-weight:400;color:var(--pink)}
@@ -99,6 +137,9 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   <symbol id="hand" viewBox="0 0 10 11"><path fill="#f3c6ae" d="M4 1h6v9H4zM1 1h3v2H1zM0 5h4v2H0z"/><path fill="#e9b398" d="M0 3h4v2H0zM1 7h3v2H1z"/><path fill="#7fa3c9" d="M1 1h1v2H1zM0 3h1v2H0zM0 5h1v2H0zM1 7h1v2H1z"/></symbol>
   <symbol id="sofa" viewBox="0 0 6 5"><path fill="#cdbfa9" d="M1 0h4v2H1z"/><path fill="#b8a98f" d="M0 2h6v2H0z"/><path fill="#8d8780" d="M2 4h2v1H2z"/></symbol>
   <symbol id="moon" viewBox="0 0 7 7"><path fill="currentColor" d="M2 0h3v1H2zM1 1h2v1H1zM0 2h2v3H0zM1 5h2v1H1zM2 6h3v1H2zM5 5h1v1H5z"/></symbol>
+  <symbol id="star" viewBox="0 0 7 7"><path fill="currentColor" d="M3 0h1v2H3zM0 2h7v1H0zM1 3h5v1H1zM2 4h3v1H2zM1 5h2v2H1zM4 5h2v2H4z"/></symbol>
+  <symbol id="snd-on" viewBox="0 0 9 7"><path fill="currentColor" d="M0 2h2v3H0zM2 1h1v5H2zM3 0h1v7H3zM5 2h1v3H5zM7 1h1v1H7zM8 2h1v3H8zM7 5h1v1H7z"/></symbol>
+  <symbol id="snd-off" viewBox="0 0 9 7"><path fill="currentColor" d="M0 2h2v3H0zM2 1h1v5H2zM3 0h1v7H3zM5 1h1v1H5zM6 2h1v1H6zM7 3h1v1H7zM8 4h1v1H8zM6 4h1v1H6zM8 2h1v1H8zM5 5h1v1H5z"/></symbol>
 </svg>
 
 <main class="wrap">
@@ -107,7 +148,23 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     <span class="mood">心情 · <span id="mood">開心</span></span>
   </header>
 
-  <section class="room" id="room" aria-label="豆包的房間">
+  <section class="panel scorebar" aria-label="分數">
+    <span class="pts" id="score">0</span>
+    <div class="lv"><span id="lvName">新手鏟屎官</span><div class="lvbar"><i id="lvFill"></i></div></div>
+    <button class="icon-btn" id="mute" aria-label="關閉聲音"><svg width="27" height="21" aria-hidden="true"><use id="muteIcon" href="#snd-on"/></svg></button>
+  </section>
+
+  <section class="panel wish" id="wishBox" aria-live="polite">
+    <span class="wicon" id="wishIcon"><svg width="21" height="18" style="color:#d9607f" aria-hidden="true"><use href="#heart"/></svg></span>
+    <div class="wbody">
+      <span id="wishText">豆包現在很滿足</span>
+      <div class="timer" id="wishTimer" hidden></div>
+      <span class="wsub" id="wishSub">等她許願，答對有獎勵，答錯會扣分喔</span>
+    </div>
+    <span class="streak" id="streak" hidden></span>
+  </section>
+
+  <section class="room p-sit" id="room" aria-label="豆包的房間">
     <div class="floor" aria-hidden="true"></div>
     <div class="floorline" aria-hidden="true"></div>
     <figure class="frame"><img class="pix" src="doubao-small.png" alt="像素版的豆包照片"></figure>
@@ -117,6 +174,7 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
       <div class="cord back"><i class="tuft" style="left:64px"></i><i class="tuft" style="right:64px"></i></div>
       <div class="cord seat"><i class="seam"></i></div>
     </div>
+    <div class="shadow" id="shadow" aria-hidden="true"></div>
 
     <button class="cat" id="cat" aria-label="摸摸豆包">
       <canvas id="sprite" class="pix a-breathe"></canvas>
@@ -140,10 +198,20 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     <button class="act" data-act="sleep"><svg width="21" height="21" style="color:#5b6f9e" aria-hidden="true"><use href="#moon"/></svg><span id="sleepLabel">睡午覺</span></button>
   </nav>
 
+  <section class="panel" aria-label="豆包圖鑑">
+    <h2 class="sec">豆包圖鑑 <span class="note" id="dexCount"></span></h2>
+    <div class="dex" id="dex"></div>
+  </section>
+
   <section class="panel" aria-label="愛心值">
     <div class="love-head"><span>豆包對你的愛心</span><span id="loveNum">0 / 100</span></div>
     <div class="hearts" id="hearts"></div>
     <span class="note">摸了豆包 <span id="pets">0</span> 次 · 點豆包也可以摸摸頭</span>
+  </section>
+
+  <section class="panel" aria-label="玩法">
+    <h2 class="sec">怎麼玩</h2>
+    <span class="note">豆包會許願，在時間內按對按鈕 +10 分，連續答對有加分。按錯 -3，沒理她 -5。餵太飽、累了還硬玩、吵醒睡覺的豆包，也會扣分喔。</span>
   </section>
 
   <section class="panel reveal" id="reveal" hidden aria-label="豆包的告白">
@@ -157,8 +225,28 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 (function () {
   var SIT = ["..............................","...KK.................KK......","...KEKK.............KKEK......","....KEEKKK.......KKKEEK.......","....KEEEK.KKDDDKK.KEEEK.......",".....KEEBKBDBDBDBKBEEK........",".....KBBBDBBBDBBBDBBBK........","......KBBBBDBBBDBBBBK.........",".....KBBBGwBBBBBGwBBBK........",".....KBBGPPGBBBGPPGBBK........",".....DBKGPPGBBBGPPGKBD........",".....KDBBGGBBBBBGGBBDK........","....KBBDBBBWNNNWBBBDBBK.......","...KBBBBBBWWWNWWWBBBBBBK......","..KBBBBBBBWWWKWWWBBBBBBBK.....","..KDBBBBBBWWKWKWWBBBBBBDDKKK..",".KBBDDCCCCCCCCCCCCCCCDDBBBKBK.",".KBBBBDDBBBBYYYBBBBDDBBBBK.KK.",".KBBBBBBDDBBLYLBBDDBBBBBBK.KK.",".KDDBBBBBBBLLLLLBBBBBBBDDK.KK.",".KBBDDBBBBBLLLLLBBBBBDDBBBKK..",".KBBBBDDBBLLLLLLLBBDDBBBBBBK..","..KBBBBBDDLLLLLLLDDBBBBBBBK...","..KDBBBBBBLLLLLLLBBBBBBDKK....","...KDDBBBBBLLLLLBBBBBDDK......","....KKDDBBBLLLLLBBBDDKK.......","......KKDDBBLLLBBDDKK.........","........KKKKKKKKKKK..........."];
   var LIE = ["............KKKK.............KKKK.",".............KEEKKK.......KKKEEK..",".............KEEEK.KKDDDKK.KEEEK..","..............KEEBKBDBDBDBKBEEK...","..............KBBBDBBBDBBBDBBBK...","...............KBBBBDBBBDBBBBK....","..............KBBBGwBBBBBGwBBBK...","..............KBBGPPGBBBGPPGBBK...","..........KKKKDBKGPPGBBBGPPGKBD...","......KKKKBBBBBDBBGGBBBBBGGBBDK...","....KKBBBDDBBBBBDBBBWNNNWBBBDBK...","..KKDBBBBBBDDBBBBBBWWWNWWWBBBK....",".KBBBDDBBBBBBDDBBBBWWWKWWWBBBK....",".KBBBBBDDBBBBBBDDBBWWKWKWWBBDK....",".KDBBBBBBDDBBBBBCCCCCCCCCCCCCK....",".KBDDBBBBBBDDBBBBBBBBYYYBBBBBK....","KBBBBDDBBBBBBDDBBBBLLLYLLLBBK.....","KKKKKKKDDBBBBBBDDBBLLLLLLLBK......",".......KKKKKBBBBBDDBBKKKKLLLK.....","............KKKKKKKKK....KKK......"];
+  var STAND = ["..............................","...KK.................KK......","...KEKK.............KKEK......","....KEEKKK.......KKKEEK.......","....KEEEK.KKDDDKK.KEEEK.......",".....KEEBKBDBDBDBKBEEK........",".....KBBBDBBBDBBBDBBBK........","......KBBBBDBBBDBBBBK.........",".....KBBBPPBBBBBPPBBBK........",".....KBBGPPGBBBGPPGBBK........",".....DBKGGwGBBBGGwGKBD..KK....",".....KDBBGGBBBBBGGBBDK...KK...",".....KBDBBBWNNNWBBBDBK...KK...","......KBBBWWWNWWWBBBK....KK...","......KBBBWWWKWWWBBBK....KK...","....KKBBBBWWKWKWWBBBBKK.KK....","...KDDBCCCCCCCCCCCCCBDDKDK....","...KBBDDBBBBYYYBBBBDDBBBK.....","..KBBBBBDDBLLYLLBDDBBBBBK.....","..KDBBBBBBLLLLLLLBBBBBBDK.....","...KDDBBBBLLLLLLLBBBBDDK......","...KBBDDBBLLLLLLLBBDDBBK......","....KBBBDDBLLLLLBDDBBBK.......",".....KBBBBBBBLBBBBBBBK........","......KBBKBBBBBBBKBBK.........","......KLK.KLLKLLK.KLK.........","......KDK.KDK.KDK.KDK.........","......DDD.DDD.DDD.DDD.........",".............................."];
+  var ROLL = ["..........................................","..........................................","..........................................","..........................................","...........KKK....KKK.....................","...........KNK....KNK.....................","......KKK..KLK....KLK..KKK................","......KNK..KLK....KLK..KNK................","......KLK..KLK....KLK..KLK....CCC.........","......KLLKKBDDKKKKBBDK.KLK.KWWKWKWWK......","......KBBLLLLLLLLLLLLLKBBKKBWWWKWWWBKK....","....KKBBLLLLLLLLLLLLLLLBKBBBWWWNWWWBBBK...","...KBBDDLLLLLLLLLLLLLLLKBDBBBWNNNWBBBDBK..","K.KBDDBBBLLLLLLLLLLLLLBKDBBGGBBBBBGGBBDK..","K.KDBBBBBBDDBBBBBBDDBBBDBKGPPGBBBGPPGKBD..","KKBBBBBBDDBBBBBBDDBBBBBKBBGPPGBBBGPPGBBK..","KKKKBBDDBBBBBBDDBBBBBBDKBBBwGBBBBBwGBBBK..","....KKBBBBBBDDBBBBBBDDBBKBBBBDBBBDBBBBK...","......KKKBDDBBBBBBDDBBKKBBBDBBBDBBBDBBBK..",".........KKKKKKKKKKKKK.KEEBKBDBDBDBKBEEK..","......................KEEEK.KKDDDKK.KEEEK.","......................KEEKKK.......KKKEEK.",".....................KEKK.............KKEK",".....................KK.................KK","..........................................",".........................................."];
   var PAL = { K:'#2a201b', D:'#3e3026', B:'#8b7154', L:'#a8896a', W:'#ece0c8', G:'#cdd27a', P:'#16120f', N:'#e3a19a', C:'#8ec5e3', Y:'#4fc3c8', E:'#5a4a3e', w:'#ffffff', R:'#eea3ae' };
-  var CELL = 8;
+  var POSES = {
+    sit:   { rows: SIT,   cell: 8, ox: 0, oy: 0,  bottom: 44,  hand: [122, 108], name: '坐盒子' },
+    lie:   { rows: LIE,   cell: 8, ox: 9, oy: -2, bottom: 100, hand: [194, 92],  name: '躺沙發' },
+    stand: { rows: STAND, cell: 8, ox: 0, oy: 0,  bottom: 24,  hand: [122, 108], name: '站著討罐罐' },
+    roll:  { rows: ROLL,  cell: 7, ox: 0, oy: 0,  bottom: 22,  hand: null,       name: '開心翻肚肚' }
+  };
+  var DEX = ['sit', 'lie', 'stand', 'roll'];
+  var DEX_HINT = { stand: '等她想吃罐罐', roll: '完成她的願望' };
+
+  var WISHES = {
+    feed:  { text: '豆包想吃罐罐！', icon: 'fish', color: '#d9822f', w: 20, h: 13 },
+    pet:   { text: '豆包想被摸摸', icon: 'heart', color: '#d9607f', w: 21, h: 18 },
+    play:  { text: '豆包想玩逗貓棒', icon: 'wand', color: '', w: 20, h: 20 },
+    bite:  { text: '豆包想咬手手', icon: 'hand', color: '', w: 20, h: 22 },
+    sleep: { text: '豆包想睡午覺', icon: 'moon', color: '#5b6f9e', w: 20, h: 20 }
+  };
+  var WISH_SECS = 12;
+  var LEVELS = [[0, '新手鏟屎官'], [50, '合格鏟屎官'], [150, '豆包的好朋友'], [300, '豆包的專屬僕人'], [500, '豆包最愛的人']];
+
   var LINES = {
     pet: ['呼嚕呼嚕～', '再摸一下嘛', '豆包好舒服～', '摸頭頭，好開心'],
     feed: ['罐罐！！', '好好吃喵～', '還要還要！', '吃飽飽才可以胖胖'],
@@ -166,75 +254,129 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     bite: ['啊嗚～輕輕咬一口', '咬咬是愛的表現', '手手好香喔', '再咬一下就好…'],
     box: ['盒子是我的！', '擠一點才舒服'],
     chair: ['沙發好軟～', '這是豆包的專屬座位'],
-    sleep: ['Zzz…', '豆包要睡午覺了', '呼…呼…']
+    sleep: ['Zzz…', '豆包要睡午覺了', '呼…呼…'],
+    good: ['你最懂我了！', '就是這個！', '喵～（滿意）', '豆包好幸福'],
+    wrong: ['不是這個啦！', '喵？你不懂我…', '哼，猜錯了']
   };
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function clamp(v) { return Math.max(0, Math.min(100, v)); }
   function $(id) { return document.getElementById(id); }
 
-  var KEY = 'doubao-v1';
-  var s = { mode: 'idle', spot: 'box', happy: 60, full: 50, energy: 70, love: 0, pets: 0, blink: false, chomp: false };
+  var KEY = 'doubao-v2';
+  var KEEP = ['happy', 'full', 'energy', 'love', 'pets', 'spot', 'score', 'best', 'seen', 'muted'];
+  var s = { mode: 'idle', spot: 'box', happy: 60, full: 50, energy: 70, love: 0, pets: 0, score: 0, best: 0, streak: 0, seen: ['sit'], muted: false, blink: false, chomp: false, pose: null, wish: null };
   try {
-    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (saved) ['happy', 'full', 'energy', 'love', 'pets', 'spot'].forEach(function (k) { if (saved[k] != null) s[k] = saved[k]; });
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null') || JSON.parse(localStorage.getItem('doubao-v1') || 'null');
+    if (saved) KEEP.forEach(function (k) { if (saved[k] != null) s[k] = saved[k]; });
   } catch (e) {}
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ happy: s.happy, full: s.full, energy: s.energy, love: s.love, pets: s.pets, spot: s.spot })); } catch (e) {}
+    var o = {};
+    KEEP.forEach(function (k) { o[k] = s[k]; });
+    try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {}
   }
 
+  /* ---------- sound ---------- */
+  var SOUNDS = { meow: 'meow.mp3', purr: 'purr.mp3', chirp: 'chirp.mp3' };
+  var actx = null, bufs = {}, tags = {};
+  function unlockAudio() {
+    if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { actx = new AC(); } catch (e) { return; }
+    var b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource();
+    src.buffer = b; src.connect(actx.destination); src.start(0);
+    Object.keys(SOUNDS).forEach(function (k) {
+      fetch(SOUNDS[k]).then(function (r) { return r.arrayBuffer(); }).then(function (ab) {
+        actx.decodeAudioData(ab, function (buf) { bufs[k] = buf; }, function () {});
+      }).catch(function () {});
+    });
+  }
+  function play(name) {
+    if (s.muted) return;
+    if (actx && bufs[name]) {
+      var src = actx.createBufferSource(); src.buffer = bufs[name]; src.connect(actx.destination); src.start(0); return;
+    }
+    try {
+      tags[name] = tags[name] || new Audio(SOUNDS[name]);
+      tags[name].currentTime = 0;
+      var p = tags[name].play(); if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', unlockAudio, { passive: true });
+  document.addEventListener('touchend', unlockAudio, { passive: true });
+
+  /* ---------- drawing ---------- */
   var timers = {}, nib = null, tick = 0;
   function later(k, ms, fn) { clearTimeout(timers[k]); timers[k] = setTimeout(fn, ms); }
 
   var canvas = $('sprite'), ctx = canvas.getContext('2d');
   var room = $('room'), cat = $('cat'), hand = $('biteHand'), fxLayer = $('fx');
 
-  function drawCat() {
-    var lying = s.spot === 'chair';
-    var g = (lying ? LIE : SIT).map(function (r) { return r.split(''); });
-    var ox = lying ? 9 : 0, oy = lying ? -2 : 0;
-    function set(x, y, c) { g[y + oy][x + ox] = c; }
-    var eyes = 'open';
-    if (s.mode === 'sleep') eyes = 'closed';
-    else if (s.mode === 'happy' || s.mode === 'eat') eyes = 'happy';
-    else if (s.mode === 'tired') eyes = 'half';
-    else if (s.blink) eyes = 'closed';
-    if (eyes !== 'open') {
-      [8, 15].forEach(function (ex) {
-        var ey = 8;
-        for (var y = ey; y < ey + 4; y++) for (var x = ex; x < ex + 4; x++) {
-          if ((x === ex || x === ex + 3) && (y === ey || y === ey + 3)) continue;
-          if (eyes === 'half') { if (y === ey) set(x, y, 'K'); } else set(x, y, 'B');
-        }
-        if (eyes === 'closed') for (var i = 0; i < 4; i++) set(ex + i, ey + 2, 'K');
-        if (eyes === 'happy') { set(ex + 1, ey + 1, 'K'); set(ex + 2, ey + 1, 'K'); set(ex, ey + 2, 'K'); set(ex + 3, ey + 2, 'K'); }
-      });
-    }
-    if (s.mode === 'eat' || s.mode === 'play' || (s.mode === 'bite' && s.chomp)) set(13, 15, 'N');
-    if (s.mode === 'happy' || s.mode === 'bite' || s.love >= 60) { set(8, 12, 'R'); set(18, 12, 'R'); }
+  function currentPose() {
+    if (s.pose) return s.pose;
+    if (s.wish && s.wish.type === 'feed' && s.mode !== 'sleep') return 'stand';
+    return s.spot === 'chair' ? 'lie' : 'sit';
+  }
 
-    var w = g[0].length, h = g.length;
-    if (canvas.width !== w) { canvas.width = w; canvas.height = h; canvas.style.width = w * CELL + 'px'; canvas.style.height = h * CELL + 'px'; }
-    ctx.clearRect(0, 0, w, h);
+  function paint(c2d, rows, silhouette) {
+    var h = rows.length, w = rows[0].length;
+    c2d.clearRect(0, 0, w, h);
     for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
-      var c = g[y][x];
-      if (c !== '.') { ctx.fillStyle = PAL[c]; ctx.fillRect(x, y, 1, 1); }
+      var ch = rows[y][x];
+      if (ch !== '.') { c2d.fillStyle = silhouette ? '#cfc2b0' : PAL[ch]; c2d.fillRect(x, y, 1, 1); }
     }
   }
 
-  var ANIM = { idle: 'a-breathe', tired: 'a-breathe', happy: 'a-wiggle', eat: 'a-bob', play: 'a-jump', bite: 'a-breathe', sleep: 'a-sleep' };
+  function drawCat() {
+    var name = currentPose(), P = POSES[name];
+    var g = P.rows.map(function (r) { return r.split(''); });
+    function set(x, y, c) { var Y = y + P.oy, X = x + P.ox; if (g[Y] && g[Y][X] !== undefined) g[Y][X] = c; }
+    if (name !== 'roll') {
+      var eyes = 'open';
+      if (s.mode === 'sleep') eyes = 'closed';
+      else if (s.mode === 'happy' || s.mode === 'eat') eyes = 'happy';
+      else if (s.mode === 'tired' || s.mode === 'angry') eyes = 'half';
+      else if (s.blink) eyes = 'closed';
+      if (eyes !== 'open') {
+        [8, 15].forEach(function (ex) {
+          var ey = 8;
+          for (var y = ey; y < ey + 4; y++) for (var x = ex; x < ex + 4; x++) {
+            if ((x === ex || x === ex + 3) && (y === ey || y === ey + 3)) continue;
+            if (eyes === 'half') { if (y === ey) set(x, y, 'K'); } else set(x, y, 'B');
+          }
+          if (eyes === 'closed') for (var i = 0; i < 4; i++) set(ex + i, ey + 2, 'K');
+          if (eyes === 'happy') { set(ex + 1, ey + 1, 'K'); set(ex + 2, ey + 1, 'K'); set(ex, ey + 2, 'K'); set(ex + 3, ey + 2, 'K'); }
+        });
+      }
+      if (s.mode === 'eat' || s.mode === 'play' || s.mode === 'meow' || (s.mode === 'bite' && s.chomp)) set(13, 15, 'N');
+      if (s.mode === 'happy' || s.mode === 'bite' || s.love >= 60) { set(8, 12, 'R'); set(18, 12, 'R'); }
+    }
+    var rows = g.map(function (r) { return r.join(''); });
+    var w = rows[0].length, h = rows.length;
+    if (canvas.width !== w || canvas.height !== h || canvas.dataset.cell !== String(P.cell)) {
+      canvas.width = w; canvas.height = h; canvas.dataset.cell = P.cell;
+      canvas.style.width = w * P.cell + 'px'; canvas.style.height = h * P.cell + 'px';
+    }
+    paint(ctx, rows, false);
+  }
+
+  var ANIM = { idle: 'a-breathe', tired: 'a-breathe', happy: 'a-wiggle', eat: 'a-bob', play: 'a-jump', bite: 'a-breathe', sleep: 'a-sleep', meow: 'a-beg', angry: 'a-shake' };
   var lastAnim = '';
   function render() {
-    var lying = s.spot === 'chair';
-    room.classList.toggle('on-chair', lying);
-    cat.style.bottom = (lying ? 100 : 44) + 'px';
-    hand.style.left = (lying ? 194 : 122) + 'px';
-    hand.style.top = (lying ? 92 : 108) + 'px';
-    var anim = ANIM[s.mode];
+    var name = currentPose(), P = POSES[name];
+    if (s.seen.indexOf(name) < 0) { s.seen.push(name); save(); renderDex(); toast('新樣子！' + P.name, true); }
+    room.className = 'room p-' + name;
+    cat.style.bottom = P.bottom + 'px';
+    var shadow = $('shadow');
+    var sw = Math.round(P.rows[0].length * P.cell * 0.7);
+    shadow.style.width = sw + 'px'; shadow.style.marginLeft = -sw / 2 + 'px';
+    if (P.hand) { hand.style.left = P.hand[0] + 'px'; hand.style.top = P.hand[1] + 'px'; }
+    var anim = name === 'roll' ? 'a-roll' : (name === 'stand' && s.mode === 'idle' ? 'a-beg' : ANIM[s.mode]);
     if (anim !== lastAnim) { canvas.className = 'pix'; void canvas.offsetWidth; canvas.className = 'pix ' + anim; lastAnim = anim; }
     drawCat();
 
-    $('mood').textContent = s.mode === 'sleep' ? '睡覺中' : s.happy >= 80 ? '超開心' : s.happy >= 50 ? '開心' : s.happy >= 25 ? '普通' : '想被摸';
-    $('spotLabel').textContent = lying ? '回盒子' : '躺沙發';
+    $('mood').textContent = s.mode === 'sleep' ? '睡覺中' : s.mode === 'angry' ? '生氣中' : s.happy >= 80 ? '超開心' : s.happy >= 50 ? '開心' : s.happy >= 25 ? '普通' : '想被摸';
+    $('spotLabel').textContent = s.spot === 'chair' ? '回盒子' : '躺沙發';
     $('sleepLabel').textContent = s.mode === 'sleep' ? '叫醒豆包' : '睡午覺';
 
     var stats = [['開心', s.happy, '#e8829f'], ['飽足', s.full, '#e39a4f'], ['精神', s.energy, '#5fb3a6']];
@@ -250,10 +392,74 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     $('loveNum').textContent = s.love + ' / 100';
     $('pets').textContent = s.pets;
     $('reveal').hidden = s.love < 100;
+    renderScore();
+    renderWish();
     renderZzz();
   }
 
+  function levelOf(sc) {
+    var idx = 0;
+    for (var i = 0; i < LEVELS.length; i++) if (sc >= LEVELS[i][0]) idx = i;
+    return idx;
+  }
+  function renderScore() {
+    $('score').textContent = s.score;
+    var i = levelOf(s.score), lo = LEVELS[i][0], hi = LEVELS[i + 1] ? LEVELS[i + 1][0] : lo;
+    $('lvName').textContent = 'Lv.' + (i + 1) + ' ' + LEVELS[i][1] + (LEVELS[i + 1] ? '' : '（滿級）');
+    $('lvFill').style.width = (hi > lo ? Math.min(100, (s.score - lo) / (hi - lo) * 100) : 100) + '%';
+    $('muteIcon').setAttribute('href', s.muted ? '#snd-off' : '#snd-on');
+    $('mute').setAttribute('aria-label', s.muted ? '打開聲音' : '關閉聲音');
+    var st = $('streak');
+    if (s.streak >= 2) { st.hidden = false; st.textContent = '連續 ' + s.streak; } else st.hidden = true;
+  }
+
+  function renderWish() {
+    var box = $('wishBox'), w = s.wish;
+    document.querySelectorAll('.act').forEach(function (b) { b.classList.toggle('wanted', false); });
+    if (!w) {
+      box.classList.remove('active');
+      $('wishText').textContent = s.mode === 'sleep' ? '豆包睡著了…' : '豆包現在很滿足';
+      $('wishSub').hidden = false;
+      $('wishTimer').hidden = true;
+      $('wishIcon').innerHTML = '<svg width="21" height="18" style="color:#d9607f" aria-hidden="true"><use href="#heart"/></svg>';
+      return;
+    }
+    var W = WISHES[w.type];
+    box.classList.add('active');
+    $('wishText').textContent = W.text;
+    $('wishSub').hidden = true;
+    $('wishIcon').innerHTML = '<svg width="' + W.w + '" height="' + W.h + '"' + (W.color ? ' style="color:' + W.color + '"' : '') + ' aria-hidden="true"><use href="#' + W.icon + '"/></svg>';
+    var left = Math.max(0, Math.ceil((w.until - Date.now()) / 1000)), segs = '';
+    for (var i = 0; i < WISH_SECS; i++) segs += '<i class="' + (i < left ? 'on' : '') + '"></i>';
+    var t = $('wishTimer'); t.innerHTML = segs; t.hidden = false; t.classList.toggle('low', left <= 3);
+  }
+
+  function renderDex() {
+    var html = '', seen = 0;
+    DEX.forEach(function (k) { if (s.seen.indexOf(k) >= 0) seen++; });
+    $('dexCount').textContent = seen + ' / ' + DEX.length;
+    DEX.forEach(function (k) {
+      var got = s.seen.indexOf(k) >= 0;
+      html += '<figure><div class="slot"><canvas class="pix" data-pose="' + k + '" data-got="' + (got ? 1 : 0) + '"></canvas></div><figcaption>' + (got ? POSES[k].name : '？？？<br>' + (DEX_HINT[k] || '')) + '</figcaption></figure>';
+    });
+    $('dex').innerHTML = html;
+    document.querySelectorAll('#dex canvas').forEach(function (c) {
+      var rows = POSES[c.dataset.pose].rows;
+      c.width = rows[0].length; c.height = rows.length;
+      paint(c.getContext('2d'), rows, c.dataset.got !== '1');
+    });
+  }
+
   function say(t) { $('line').textContent = t; }
+
+  function toast(text, good) {
+    var d = document.createElement('div');
+    d.className = 'toast ' + (good ? 'good' : 'bad');
+    d.textContent = text;
+    d.style.top = (96 + 44 * room.querySelectorAll('.toast').length) + 'px';
+    room.appendChild(d);
+    setTimeout(function () { d.remove(); }, 1700);
+  }
 
   var zzzOn = false;
   function renderZzz() {
@@ -278,54 +484,135 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
         '<svg class="fx" width="28" height="24" style="left:26%;top:150px;color:#e8829f"><use href="#heart"/></svg>' +
         '<svg class="fx" width="35" height="30" style="left:47%;top:124px;color:#d9607f;animation-delay:.15s"><use href="#heart"/></svg>' +
         '<svg class="fx" width="21" height="18" style="left:70%;top:160px;color:#e8829f;animation-delay:.3s"><use href="#heart"/></svg>';
+    } else if (kind === 'stars') {
+      fxLayer.innerHTML =
+        '<svg class="fx" width="28" height="28" style="left:20%;top:170px;color:#e0a92a"><use href="#star"/></svg>' +
+        '<svg class="fx" width="35" height="35" style="left:46%;top:140px;color:#e8829f;animation-delay:.15s"><use href="#star"/></svg>' +
+        '<svg class="fx" width="24" height="24" style="left:74%;top:170px;color:#e0a92a;animation-delay:.3s"><use href="#star"/></svg>';
     } else if (kind === 'fish') {
       fxLayer.innerHTML = '<div class="dish"><svg width="32" height="20" style="color:#e39a4f"><use href="#fish"/></svg><div></div></div>';
     } else if (kind === 'wand') {
       fxLayer.innerHTML = '<svg class="wand" width="56" height="56"><use href="#wand"/></svg>';
-    } else if (kind === 'hand') {
+    } else if (kind === 'hand' && POSES[currentPose()].hand) {
       hand.removeAttribute('hidden');
     }
     later('fxoff', 1800, function () { fxLayer.innerHTML = ''; hand.setAttribute('hidden', ''); });
   }
 
-  function settle() {
-    later('mode', 1900, function () {
+  function settle(ms) {
+    later('mode', ms || 1900, function () {
       clearInterval(nib);
       if (s.mode !== 'sleep') { s.mode = 'idle'; s.chomp = false; render(); }
     });
   }
 
+  /* ---------- scoring ---------- */
+  function addScore(n, label) {
+    var before = levelOf(s.score);
+    s.score = Math.max(0, s.score + n);
+    if (s.score > s.best) s.best = s.score;
+    toast((n > 0 ? '+' : '') + n + (label ? ' ' + label : ''), n > 0);
+    var after = levelOf(s.score);
+    if (after > before) later('lvup', 900, function () { toast('升級！' + LEVELS[after][1], true); play('chirp'); });
+  }
+
+  function newWish() {
+    var pool = [];
+    function add(t, n) { for (var i = 0; i < n; i++) pool.push(t); }
+    add('pet', 2); add('play', s.energy >= 30 ? 2 : 0); add('bite', 1);
+    add('feed', s.full < 50 ? 4 : (s.full < 85 ? 1 : 0));
+    add('sleep', s.energy < 35 ? 4 : 0);
+    var t = pick(pool);
+    s.wish = { type: t, until: Date.now() + WISH_SECS * 1000 };
+    s.pose = null;
+    s.mode = t === 'feed' ? 'meow' : 'idle';
+    say('喵～' + (t === 'feed' ? '（盯）罐罐呢？' : '（' + WISHES[t].text.replace('豆包', '') + '）'));
+    play('meow');
+    render();
+  }
+  var nextWishAt = Date.now() + 5000;
+
+  function resolveWish(kind) {
+    var w = s.wish;
+    if (!w) return 0;
+    if (kind === w.type) {
+      s.wish = null; s.streak++;
+      var bonus = s.streak >= 3 ? 5 : 0;
+      addScore(10 + bonus, bonus ? '連擊！' : '');
+      s.love = clamp(s.love + 5);
+      nextWishAt = Date.now() + 7000 + Math.random() * 7000;
+      return 1;
+    }
+    s.streak = 0;
+    addScore(-3);
+    s.happy = clamp(s.happy - 4);
+    return -1;
+  }
+
+  function celebrate() {
+    if (s.mode === 'sleep') return;
+    play('chirp');
+    later('celebrate', 900, function () {
+      s.pose = 'roll'; s.mode = 'happy'; say(pick(LINES.good)); flash('stars'); render();
+      later('unroll', 2400, function () { s.pose = null; s.mode = 'idle'; render(); });
+    });
+  }
+
+  /* ---------- actions ---------- */
   function act(kind) {
+    unlockAudio();
     if (s.mode === 'sleep' && kind !== 'sleep') {
-      s.mode = 'idle'; say('嗯…？（揉眼睛）'); render(); return;
+      s.mode = 'angry'; say('被吵醒了…哼！'); s.happy = clamp(s.happy - 6); s.streak = 0;
+      addScore(-3); save(); render(); settle(1500); return;
     }
     clearInterval(nib);
-    s.chomp = false;
+    clearTimeout(timers.unroll); clearTimeout(timers.celebrate);
+    s.pose = null; s.chomp = false;
+    var wished = s.wish ? s.wish.type : null;
+    var result = 0;
+
     if (kind === 'pet') {
-      s.mode = 'happy'; s.happy = clamp(s.happy + 12); s.love = clamp(s.love + 8); s.pets++;
-      say(pick(LINES.pet)); flash('hearts');
+      s.mode = 'happy'; s.happy = clamp(s.happy + 12); s.love = clamp(s.love + 6); s.pets++;
+      say(pick(LINES.pet)); flash('hearts'); play('purr');
     } else if (kind === 'feed') {
-      say(s.full >= 95 ? '吃不下了…但還是要吃' : pick(LINES.feed));
-      s.mode = 'eat'; s.full = clamp(s.full + 25); s.happy = clamp(s.happy + 6); s.love = clamp(s.love + 5);
+      if (s.full >= 90) {
+        s.mode = 'angry'; say('吃太多會變更胖啦！'); s.streak = 0; addScore(-5);
+        save(); render(); settle(1500); return;
+      }
+      say(pick(LINES.feed));
+      s.mode = 'eat'; s.full = clamp(s.full + 25); s.happy = clamp(s.happy + 6); s.love = clamp(s.love + 4);
       flash('fish');
     } else if (kind === 'play') {
-      if (s.energy < 20) { s.mode = 'tired'; say('豆包沒力氣了…想睡覺'); }
-      else {
-        s.mode = 'play'; s.energy = clamp(s.energy - 18); s.happy = clamp(s.happy + 10); s.love = clamp(s.love + 6);
-        say(pick(LINES.play)); flash('wand');
+      if (s.energy < 20) {
+        s.mode = 'tired'; say('豆包沒力氣了…先讓我睡一下'); s.streak = 0; addScore(-5);
+        save(); render(); settle(); return;
       }
+      s.mode = 'play'; s.energy = clamp(s.energy - 18); s.happy = clamp(s.happy + 10); s.love = clamp(s.love + 5);
+      say(pick(LINES.play)); flash('wand');
     } else if (kind === 'bite') {
-      s.mode = 'bite'; s.chomp = true; s.happy = clamp(s.happy + 6); s.love = clamp(s.love + 6);
+      s.mode = 'bite'; s.chomp = true; s.happy = clamp(s.happy + 6); s.love = clamp(s.love + 5);
       say(pick(LINES.bite)); flash('hand');
       nib = setInterval(function () { s.chomp = !s.chomp; drawCat(); }, 260);
     } else if (kind === 'spot') {
       s.spot = s.spot === 'box' ? 'chair' : 'box';
-      s.mode = 'happy'; s.happy = clamp(s.happy + 4); s.love = clamp(s.love + 3);
+      s.mode = 'happy'; s.happy = clamp(s.happy + 3);
       say(pick(LINES[s.spot]));
+      save(); render(); settle(); return;
     } else if (kind === 'sleep') {
-      if (s.mode === 'sleep') { s.mode = 'idle'; say('睡飽飽了！'); }
-      else { s.mode = 'sleep'; fxLayer.innerHTML = ''; hand.setAttribute('hidden', ''); say(pick(LINES.sleep)); }
+      if (s.mode === 'sleep') { s.mode = 'idle'; say('睡飽飽了！'); save(); render(); return; }
+      if (s.energy >= 90 && wished !== 'sleep') { say('豆包還不睏啦'); render(); return; }
+      result = resolveWish('sleep');
+      s.mode = 'sleep'; fxLayer.innerHTML = ''; hand.setAttribute('hidden', ''); say(pick(LINES.sleep));
+      if (result === 1) play('chirp');
       save(); render(); return;
+    }
+
+    result = resolveWish(kind);
+    if (result === 1) celebrate();
+    else if (result === -1) {
+      later('wrongline', 1100, function () { if (s.wish) say(pick(LINES.wrong) + WISHES[s.wish.type].text.replace('豆包', '我')); });
+    } else {
+      s.score += 1; if (s.score > s.best) s.best = s.score;
     }
     save(); render(); settle();
   }
@@ -334,13 +621,27 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   document.querySelectorAll('.act').forEach(function (b) {
     b.addEventListener('click', function () { act(b.getAttribute('data-act')); });
   });
+  $('mute').addEventListener('click', function () { unlockAudio(); s.muted = !s.muted; save(); renderScore(); if (!s.muted) play('chirp'); });
 
   setInterval(function () {
     tick++;
-    var changed = false;
+    var changed = false, now = Date.now();
     if (s.mode === 'sleep' && s.energy < 100) { s.energy = clamp(s.energy + 5); changed = true; }
     if (tick % 6 === 0) { s.full = clamp(s.full - 2); s.happy = clamp(s.happy - 1); changed = true; }
-    if (tick % 4 === 0 && s.mode !== 'sleep') {
+    if (s.wish) {
+      if (now >= s.wish.until) {
+        var t = s.wish.type;
+        s.wish = null; s.streak = 0; s.happy = clamp(s.happy - 10);
+        s.mode = 'angry'; say('哼！' + WISHES[t].text.replace('豆包', '豆包剛剛') + '，你都不理我');
+        addScore(-5, '沒理豆包'); settle(1800);
+        nextWishAt = now + 8000 + Math.random() * 6000;
+        changed = true;
+      } else renderWish();
+    } else if (s.mode !== 'sleep' && !s.pose && now >= nextWishAt) {
+      newWish();
+    }
+    if (s.mode === 'sleep') nextWishAt = Math.max(nextWishAt, now + 4000);
+    if (tick % 4 === 0 && s.mode !== 'sleep' && currentPose() !== 'roll') {
       s.blink = true; drawCat();
       later('blink', 180, function () { s.blink = false; drawCat(); });
     }
@@ -348,6 +649,7 @@ nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   }, 1000);
 
   if (s.love >= 100) say('你回來了！豆包好想你');
+  renderDex();
   render();
 })();
 </script>
