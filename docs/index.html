@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="豆包">
+<meta name="theme-color" content="#f7f1e8">
+<title>豆包的小窩</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3a2e2a;--paper:#fffdf9;--bg:#f7f1e8;--muted:#6f6058;--pink:#b4456b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+body{font-family:'DotGothic16','PingFang TC','Noto Sans TC',monospace;padding:calc(20px + env(safe-area-inset-top)) 16px calc(36px + env(safe-area-inset-bottom));display:flex;justify-content:center;-webkit-user-select:none;user-select:none}
+.wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{margin:0;font-size:28px;font-weight:400;letter-spacing:2px}
+.mood{padding:6px 10px;background:#f8dbe3;border:3px solid var(--ink);font-size:14px;white-space:nowrap}
+.panel{background:var(--paper);border:3px solid var(--ink);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.pix{image-rendering:pixelated;image-rendering:crisp-edges}
+
+.room{position:relative;height:360px;overflow:hidden;border:3px solid var(--ink);background:#f3ebdf}
+.floor{position:absolute;left:0;right:0;bottom:0;height:108px;background:#e6dccd;border-top:3px solid var(--ink)}
+.floorline{position:absolute;left:0;right:0;bottom:54px;height:3px;background:#d8ccb9}
+.frame{position:absolute;right:14px;top:14px;margin:0;padding:4px;background:var(--paper);border:3px solid var(--ink)}
+.frame img{display:block;width:48px;height:64px}
+.bubble{position:absolute;left:50%;top:18px;transform:translateX(-50%);max-width:48%;min-width:96px;padding:8px 12px;background:var(--paper);border:3px solid var(--ink);font-size:15px;line-height:1.35;text-align:center}
+.bubble::before,.bubble::after{content:"";position:absolute;left:50%;width:6px;height:6px;background:var(--ink)}
+.bubble::before{bottom:-9px;margin-left:-3px}
+.bubble::after{bottom:-15px;margin-left:3px}
+
+.chair{display:none}
+.room.on-chair .chair{display:block}
+.room.on-chair .box{display:none}
+.chair .foot{position:absolute;left:50%;bottom:20px;width:152px;height:8px;margin-left:-76px;background:#8d8780}
+.chair .stem{position:absolute;left:50%;bottom:28px;width:8px;height:24px;margin-left:-4px;background:#8d8780}
+.cord{background:repeating-linear-gradient(90deg,#efe6d6 0 6px,#e7dcc9 6px 8px);border:3px solid var(--ink);position:absolute;left:50%}
+.chair .back{bottom:112px;width:224px;height:112px;margin-left:-112px}
+.chair .seat{bottom:52px;width:288px;height:64px;margin-left:-144px}
+.tuft{position:absolute;top:30px;width:8px;height:8px;background:#c9bba4}
+.seat .seam{position:absolute;left:0;right:0;top:30px;height:3px;background:#ddd1bd}
+.box{position:absolute;left:50%;bottom:20px;margin-left:-108px;width:216px;height:64px;background:#f1b2c3;border:3px solid var(--ink);border-top:16px solid #d98aa2;pointer-events:none}
+
+.cat{position:absolute;left:50%;padding:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;transform:translateX(-50%)}
+.cat canvas{display:block;transform-origin:50% 100%}
+.cat:focus-visible,.act:focus-visible{outline:3px dashed #c4507a;outline-offset:3px}
+.a-breathe{animation:breathe 2.4s steps(1) infinite}
+.a-sleep{animation:breathe 3.6s steps(1) infinite}
+.a-wiggle{animation:wiggle .5s steps(1) 3}
+.a-bob{animation:bob .4s steps(1) infinite}
+.a-jump{animation:jump .9s steps(4) 2}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes wiggle{0%,100%{transform:translateX(0)}33%{transform:translateX(-4px)}66%{transform:translateX(4px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@keyframes jump{0%,100%{transform:translateY(0)}35%,65%{transform:translateY(-40px)}}
+@keyframes floatUp{0%{opacity:0;transform:translateY(0)}15%{opacity:1}100%{opacity:0;transform:translateY(-96px)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(24px,-56px)}}
+@keyframes sway{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes poke{0%,100%{transform:translateX(0)}50%{transform:translateX(-6px)}}
+.fx{position:absolute;opacity:0;animation:floatUp 1.4s steps(7) forwards;pointer-events:none}
+.z{position:absolute;font-size:16px;color:#5b6f9e;animation:zz 2.4s steps(6) infinite;opacity:0;pointer-events:none}
+.wand{position:absolute;right:20px;top:132px;animation:sway .5s steps(1) infinite;pointer-events:none}
+.hand{position:absolute;animation:poke .5s steps(1) infinite;pointer-events:none}
+.dish{position:absolute;left:14px;bottom:16px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.dish div{width:48px;height:14px;background:#8ec5e3;border:3px solid var(--ink)}
+[hidden]{display:none !important}
+
+.stat{display:grid;grid-template-columns:40px minmax(0,1fr) 32px;align-items:center;gap:10px;font-size:14px}
+.bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px;height:10px}
+.bar i{background:#eee4d8}
+.stat .v{text-align:right;color:var(--muted);font-size:13px}
+
+nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.act{font:inherit;font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 4px 10px;min-height:72px;background:var(--paper);color:var(--ink);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);border-radius:0;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none}
+.act:active{transform:translate(3px,3px);box-shadow:none}
+
+.love-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
+.love-head span:last-child{color:var(--pink);font-size:13px}
+.hearts{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
+.hearts svg{width:100%;height:auto;color:#eaddd2}
+.hearts svg.on{color:#d9607f}
+.note{font-size:13px;color:var(--muted)}
+.reveal{align-items:center;text-align:center;padding:16px;gap:10px}
+.reveal img{width:168px;height:224px;border:3px solid var(--ink)}
+.reveal h2{margin:0;font-size:22px;font-weight:400;color:var(--pink)}
+.reveal p{margin:0;font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="heart" viewBox="0 0 7 6"><path fill="currentColor" d="M1 0h2v1H1zM4 0h2v1H4zM0 1h7v2H0zM1 3h5v1H1zM2 4h3v1H2zM3 5h1v1H3z"/></symbol>
+  <symbol id="fish" viewBox="0 0 8 5"><path fill="currentColor" d="M2 0h3v1H2zM7 0h1v1H7zM1 1h7v1H1zM0 2h2v1H0zM3 2h4v1H3zM1 3h7v1H1zM2 4h3v1H2zM7 4h1v1H7z"/></symbol>
+  <symbol id="wand" viewBox="0 0 8 8"><path fill="#8a5a3c" d="M0 7h1v1H0zM1 6h1v1H1zM2 5h1v1H2zM3 4h1v1H3z"/><path fill="#d9607f" d="M4 1h2v3H4z"/><path fill="#d9a52a" d="M5 0h2v2H5z"/><path fill="#3f9e90" d="M6 2h2v1H6z"/></symbol>
+  <symbol id="hand" viewBox="0 0 10 11"><path fill="#f3c6ae" d="M4 1h6v9H4zM1 1h3v2H1zM0 5h4v2H0z"/><path fill="#e9b398" d="M0 3h4v2H0zM1 7h3v2H1z"/><path fill="#7fa3c9" d="M1 1h1v2H1zM0 3h1v2H0zM0 5h1v2H0zM1 7h1v2H1z"/></symbol>
+  <symbol id="sofa" viewBox="0 0 6 5"><path fill="#cdbfa9" d="M1 0h4v2H1z"/><path fill="#b8a98f" d="M0 2h6v2H0z"/><path fill="#8d8780" d="M2 4h2v1H2z"/></symbol>
+  <symbol id="moon" viewBox="0 0 7 7"><path fill="currentColor" d="M2 0h3v1H2zM1 1h2v1H1zM0 2h2v3H0zM1 5h2v1H1zM2 6h3v1H2zM5 5h1v1H5z"/></symbol>
+</svg>
+
+<main class="wrap">
+  <header>
+    <h1>豆包的小窩</h1>
+    <span class="mood">心情 · <span id="mood">開心</span></span>
+  </header>
+
+  <section class="room" id="room" aria-label="豆包的房間">
+    <div class="floor" aria-hidden="true"></div>
+    <div class="floorline" aria-hidden="true"></div>
+    <figure class="frame"><img class="pix" src="doubao-small.png" alt="像素版的豆包照片"></figure>
+
+    <div class="chair" aria-hidden="true">
+      <div class="foot"></div><div class="stem"></div>
+      <div class="cord back"><i class="tuft" style="left:64px"></i><i class="tuft" style="right:64px"></i></div>
+      <div class="cord seat"><i class="seam"></i></div>
+    </div>
+
+    <button class="cat" id="cat" aria-label="摸摸豆包">
+      <canvas id="sprite" class="pix a-breathe"></canvas>
+      <svg class="hand" id="biteHand" width="40" height="44" hidden aria-hidden="true"><use href="#hand"/></svg>
+    </button>
+
+    <div class="box" aria-hidden="true"></div>
+
+    <div id="fx" aria-hidden="true"></div>
+    <div class="bubble" id="line" role="status" aria-live="polite">嗨～我是豆包！</div>
+  </section>
+
+  <section class="panel" aria-label="豆包的狀態" id="stats"></section>
+
+  <nav aria-label="跟豆包玩">
+    <button class="act" data-act="pet"><svg width="21" height="18" style="color:#d9607f" aria-hidden="true"><use href="#heart"/></svg>摸摸頭</button>
+    <button class="act" data-act="feed"><svg width="24" height="15" style="color:#d9822f" aria-hidden="true"><use href="#fish"/></svg>餵罐罐</button>
+    <button class="act" data-act="play"><svg width="20" height="20" aria-hidden="true"><use href="#wand"/></svg>逗貓棒</button>
+    <button class="act" data-act="bite"><svg width="20" height="22" aria-hidden="true"><use href="#hand"/></svg>咬手手</button>
+    <button class="act" data-act="spot"><svg width="24" height="20" aria-hidden="true"><use href="#sofa"/></svg><span id="spotLabel">躺沙發</span></button>
+    <button class="act" data-act="sleep"><svg width="21" height="21" style="color:#5b6f9e" aria-hidden="true"><use href="#moon"/></svg><span id="sleepLabel">睡午覺</span></button>
+  </nav>
+
+  <section class="panel" aria-label="愛心值">
+    <div class="love-head"><span>豆包對你的愛心</span><span id="loveNum">0 / 100</span></div>
+    <div class="hearts" id="hearts"></div>
+    <span class="note">摸了豆包 <span id="pets">0</span> 次 · 點豆包也可以摸摸頭</span>
+  </section>
+
+  <section class="panel reveal" id="reveal" hidden aria-label="豆包的告白">
+    <img class="pix" src="doubao-big.png" alt="像素版的豆包坐在粉紅盒子裡">
+    <h2>豆包最喜歡你了！</h2>
+    <p>本貓認證 · 每天都要來摸摸我</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var SIT = ["..............................","...KK.................KK......","...KEKK.............KKEK......","....KEEKKK.......KKKEEK.......","....KEEEK.KKDDDKK.KEEEK.......",".....KEEBKBDBDBDBKBEEK........",".....KBBBDBBBDBBBDBBBK........","......KBBBBDBBBDBBBBK.........",".....KBBBGwBBBBBGwBBBK........",".....KBBGPPGBBBGPPGBBK........",".....DBKGPPGBBBGPPGKBD........",".....KDBBGGBBBBBGGBBDK........","....KBBDBBBWNNNWBBBDBBK.......","...KBBBBBBWWWNWWWBBBBBBK......","..KBBBBBBBWWWKWWWBBBBBBBK.....","..KDBBBBBBWWKWKWWBBBBBBDDKKK..",".KBBDDCCCCCCCCCCCCCCCDDBBBKBK.",".KBBBBDDBBBBYYYBBBBDDBBBBK.KK.",".KBBBBBBDDBBLYLBBDDBBBBBBK.KK.",".KDDBBBBBBBLLLLLBBBBBBBDDK.KK.",".KBBDDBBBBBLLLLLBBBBBDDBBBKK..",".KBBBBDDBBLLLLLLLBBDDBBBBBBK..","..KBBBBBDDLLLLLLLDDBBBBBBBK...","..KDBBBBBBLLLLLLLBBBBBBDKK....","...KDDBBBBBLLLLLBBBBBDDK......","....KKDDBBBLLLLLBBBDDKK.......","......KKDDBBLLLBBDDKK.........","........KKKKKKKKKKK..........."];
+  var LIE = ["............KKKK.............KKKK.",".............KEEKKK.......KKKEEK..",".............KEEEK.KKDDDKK.KEEEK..","..............KEEBKBDBDBDBKBEEK...","..............KBBBDBBBDBBBDBBBK...","...............KBBBBDBBBDBBBBK....","..............KBBBGwBBBBBGwBBBK...","..............KBBGPPGBBBGPPGBBK...","..........KKKKDBKGPPGBBBGPPGKBD...","......KKKKBBBBBDBBGGBBBBBGGBBDK...","....KKBBBDDBBBBBDBBBWNNNWBBBDBK...","..KKDBBBBBBDDBBBBBBWWWNWWWBBBK....",".KBBBDDBBBBBBDDBBBBWWWKWWWBBBK....",".KBBBBBDDBBBBBBDDBBWWKWKWWBBDK....",".KDBBBBBBDDBBBBBCCCCCCCCCCCCCK....",".KBDDBBBBBBDDBBBBBBBBYYYBBBBBK....","KBBBBDDBBBBBBDDBBBBLLLYLLLBBK.....","KKKKKKKDDBBBBBBDDBBLLLLLLLBK......",".......KKKKKBBBBBDDBBKKKKLLLK.....","............KKKKKKKKK....KKK......"];
+  var PAL = { K:'#2a201b', D:'#3e3026', B:'#8b7154', L:'#a8896a', W:'#ece0c8', G:'#cdd27a', P:'#16120f', N:'#e3a19a', C:'#8ec5e3', Y:'#4fc3c8', E:'#5a4a3e', w:'#ffffff', R:'#eea3ae' };
+  var CELL = 8;
+  var LINES = {
+    pet: ['呼嚕呼嚕～', '再摸一下嘛', '豆包好舒服～', '摸頭頭，好開心'],
+    feed: ['罐罐！！', '好好吃喵～', '還要還要！', '吃飽飽才可以胖胖'],
+    play: ['抓到了！', '喵嗚～衝呀！', '看我的貓貓拳', '再來一次！'],
+    bite: ['啊嗚～輕輕咬一口', '咬咬是愛的表現', '手手好香喔', '再咬一下就好…'],
+    box: ['盒子是我的！', '擠一點才舒服'],
+    chair: ['沙發好軟～', '這是豆包的專屬座位'],
+    sleep: ['Zzz…', '豆包要睡午覺了', '呼…呼…']
+  };
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function clamp(v) { return Math.max(0, Math.min(100, v)); }
+  function $(id) { return document.getElementById(id); }
+
+  var KEY = 'doubao-v1';
+  var s = { mode: 'idle', spot: 'box', happy: 60, full: 50, energy: 70, love: 0, pets: 0, blink: false, chomp: false };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) ['happy', 'full', 'energy', 'love', 'pets', 'spot'].forEach(function (k) { if (saved[k] != null) s[k] = saved[k]; });
+  } catch (e) {}
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ happy: s.happy, full: s.full, energy: s.energy, love: s.love, pets: s.pets, spot: s.spot })); } catch (e) {}
+  }
+
+  var timers = {}, nib = null, tick = 0;
+  function later(k, ms, fn) { clearTimeout(timers[k]); timers[k] = setTimeout(fn, ms); }
+
+  var canvas = $('sprite'), ctx = canvas.getContext('2d');
+  var room = $('room'), cat = $('cat'), hand = $('biteHand'), fxLayer = $('fx');
+
+  function drawCat() {
+    var lying = s.spot === 'chair';
+    var g = (lying ? LIE : SIT).map(function (r) { return r.split(''); });
+    var ox = lying ? 9 : 0, oy = lying ? -2 : 0;
+    function set(x, y, c) { g[y + oy][x + ox] = c; }
+    var eyes = 'open';
+    if (s.mode === 'sleep') eyes = 'closed';
+    else if (s.mode === 'happy' || s.mode === 'eat') eyes = 'happy';
+    else if (s.mode === 'tired') eyes = 'half';
+    else if (s.blink) eyes = 'closed';
+    if (eyes !== 'open') {
+      [8, 15].forEach(function (ex) {
+        var ey = 8;
+        for (var y = ey; y < ey + 4; y++) for (var x = ex; x < ex + 4; x++) {
+          if ((x === ex || x === ex + 3) && (y === ey || y === ey + 3)) continue;
+          if (eyes === 'half') { if (y === ey) set(x, y, 'K'); } else set(x, y, 'B');
+        }
+        if (eyes === 'closed') for (var i = 0; i < 4; i++) set(ex + i, ey + 2, 'K');
+        if (eyes === 'happy') { set(ex + 1, ey + 1, 'K'); set(ex + 2, ey + 1, 'K'); set(ex, ey + 2, 'K'); set(ex + 3, ey + 2, 'K'); }
+      });
+    }
+    if (s.mode === 'eat' || s.mode === 'play' || (s.mode === 'bite' && s.chomp)) set(13, 15, 'N');
+    if (s.mode === 'happy' || s.mode === 'bite' || s.love >= 60) { set(8, 12, 'R'); set(18, 12, 'R'); }
+
+    var w = g[0].length, h = g.length;
+    if (canvas.width !== w) { canvas.width = w; canvas.height = h; canvas.style.width = w * CELL + 'px'; canvas.style.height = h * CELL + 'px'; }
+    ctx.clearRect(0, 0, w, h);
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var c = g[y][x];
+      if (c !== '.') { ctx.fillStyle = PAL[c]; ctx.fillRect(x, y, 1, 1); }
+    }
+  }
+
+  var ANIM = { idle: 'a-breathe', tired: 'a-breathe', happy: 'a-wiggle', eat: 'a-bob', play: 'a-jump', bite: 'a-breathe', sleep: 'a-sleep' };
+  var lastAnim = '';
+  function render() {
+    var lying = s.spot === 'chair';
+    room.classList.toggle('on-chair', lying);
+    cat.style.bottom = (lying ? 100 : 44) + 'px';
+    hand.style.left = (lying ? 194 : 122) + 'px';
+    hand.style.top = (lying ? 92 : 108) + 'px';
+    var anim = ANIM[s.mode];
+    if (anim !== lastAnim) { canvas.className = 'pix'; void canvas.offsetWidth; canvas.className = 'pix ' + anim; lastAnim = anim; }
+    drawCat();
+
+    $('mood').textContent = s.mode === 'sleep' ? '睡覺中' : s.happy >= 80 ? '超開心' : s.happy >= 50 ? '開心' : s.happy >= 25 ? '普通' : '想被摸';
+    $('spotLabel').textContent = lying ? '回盒子' : '躺沙發';
+    $('sleepLabel').textContent = s.mode === 'sleep' ? '叫醒豆包' : '睡午覺';
+
+    var stats = [['開心', s.happy, '#e8829f'], ['飽足', s.full, '#e39a4f'], ['精神', s.energy, '#5fb3a6']];
+    $('stats').innerHTML = stats.map(function (st) {
+      var on = Math.round(st[1] / 10), segs = '';
+      for (var i = 0; i < 10; i++) segs += '<i' + (i < on ? ' style="background:' + st[2] + '"' : '') + '></i>';
+      return '<div class="stat"><span>' + st[0] + '</span><div class="bar">' + segs + '</div><span class="v">' + st[1] + '</span></div>';
+    }).join('');
+
+    var lit = Math.floor(s.love / 10), hs = '';
+    for (var i = 0; i < 10; i++) hs += '<svg viewBox="0 0 7 6" class="' + (i < lit ? 'on' : '') + '" aria-hidden="true"><use href="#heart"/></svg>';
+    $('hearts').innerHTML = hs;
+    $('loveNum').textContent = s.love + ' / 100';
+    $('pets').textContent = s.pets;
+    $('reveal').hidden = s.love < 100;
+    renderZzz();
+  }
+
+  function say(t) { $('line').textContent = t; }
+
+  var zzzOn = false;
+  function renderZzz() {
+    var want = s.mode === 'sleep';
+    if (want === zzzOn) return;
+    zzzOn = want;
+    var old = room.querySelector('.zzz');
+    if (old) old.remove();
+    if (want) {
+      var d = document.createElement('div');
+      d.className = 'zzz';
+      d.innerHTML = '<span class="z" style="left:64%;top:140px">Z</span><span class="z" style="left:68%;top:128px;font-size:20px;animation-delay:.8s">Z</span><span class="z" style="left:72%;top:116px;font-size:24px;animation-delay:1.6s">Z</span>';
+      room.appendChild(d);
+    }
+  }
+
+  function flash(kind) {
+    fxLayer.innerHTML = '';
+    hand.setAttribute('hidden', '');
+    if (kind === 'hearts') {
+      fxLayer.innerHTML =
+        '<svg class="fx" width="28" height="24" style="left:26%;top:150px;color:#e8829f"><use href="#heart"/></svg>' +
+        '<svg class="fx" width="35" height="30" style="left:47%;top:124px;color:#d9607f;animation-delay:.15s"><use href="#heart"/></svg>' +
+        '<svg class="fx" width="21" height="18" style="left:70%;top:160px;color:#e8829f;animation-delay:.3s"><use href="#heart"/></svg>';
+    } else if (kind === 'fish') {
+      fxLayer.innerHTML = '<div class="dish"><svg width="32" height="20" style="color:#e39a4f"><use href="#fish"/></svg><div></div></div>';
+    } else if (kind === 'wand') {
+      fxLayer.innerHTML = '<svg class="wand" width="56" height="56"><use href="#wand"/></svg>';
+    } else if (kind === 'hand') {
+      hand.removeAttribute('hidden');
+    }
+    later('fxoff', 1800, function () { fxLayer.innerHTML = ''; hand.setAttribute('hidden', ''); });
+  }
+
+  function settle() {
+    later('mode', 1900, function () {
+      clearInterval(nib);
+      if (s.mode !== 'sleep') { s.mode = 'idle'; s.chomp = false; render(); }
+    });
+  }
+
+  function act(kind) {
+    if (s.mode === 'sleep' && kind !== 'sleep') {
+      s.mode = 'idle'; say('嗯…？（揉眼睛）'); render(); return;
+    }
+    clearInterval(nib);
+    s.chomp = false;
+    if (kind === 'pet') {
+      s.mode = 'happy'; s.happy = clamp(s.happy + 12); s.love = clamp(s.love + 8); s.pets++;
+      say(pick(LINES.pet)); flash('hearts');
+    } else if (kind === 'feed') {
+      say(s.full >= 95 ? '吃不下了…但還是要吃' : pick(LINES.feed));
+      s.mode = 'eat'; s.full = clamp(s.full + 25); s.happy = clamp(s.happy + 6); s.love = clamp(s.love + 5);
+      flash('fish');
+    } else if (kind === 'play') {
+      if (s.energy < 20) { s.mode = 'tired'; say('豆包沒力氣了…想睡覺'); }
+      else {
+        s.mode = 'play'; s.energy = clamp(s.energy - 18); s.happy = clamp(s.happy + 10); s.love = clamp(s.love + 6);
+        say(pick(LINES.play)); flash('wand');
+      }
+    } else if (kind === 'bite') {
+      s.mode = 'bite'; s.chomp = true; s.happy = clamp(s.happy + 6); s.love = clamp(s.love + 6);
+      say(pick(LINES.bite)); flash('hand');
+      nib = setInterval(function () { s.chomp = !s.chomp; drawCat(); }, 260);
+    } else if (kind === 'spot') {
+      s.spot = s.spot === 'box' ? 'chair' : 'box';
+      s.mode = 'happy'; s.happy = clamp(s.happy + 4); s.love = clamp(s.love + 3);
+      say(pick(LINES[s.spot]));
+    } else if (kind === 'sleep') {
+      if (s.mode === 'sleep') { s.mode = 'idle'; say('睡飽飽了！'); }
+      else { s.mode = 'sleep'; fxLayer.innerHTML = ''; hand.setAttribute('hidden', ''); say(pick(LINES.sleep)); }
+      save(); render(); return;
+    }
+    save(); render(); settle();
+  }
+
+  cat.addEventListener('click', function () { act('pet'); });
+  document.querySelectorAll('.act').forEach(function (b) {
+    b.addEventListener('click', function () { act(b.getAttribute('data-act')); });
+  });
+
+  setInterval(function () {
+    tick++;
+    var changed = false;
+    if (s.mode === 'sleep' && s.energy < 100) { s.energy = clamp(s.energy + 5); changed = true; }
+    if (tick % 6 === 0) { s.full = clamp(s.full - 2); s.happy = clamp(s.happy - 1); changed = true; }
+    if (tick % 4 === 0 && s.mode !== 'sleep') {
+      s.blink = true; drawCat();
+      later('blink', 180, function () { s.blink = false; drawCat(); });
+    }
+    if (changed) { save(); render(); }
+  }, 1000);
+
+  if (s.love >= 100) say('你回來了！豆包好想你');
+  render();
+})();
+</script>
+</body>
+</html>
