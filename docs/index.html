@@ -276,7 +276,7 @@ h2.sec{margin:0;font-size:15px;font-weight:400}
   }
 
   /* ---------- sound ---------- */
-  var SOUNDS = { meow: 'meow.mp3', purr: 'purr.mp3', chirp: 'chirp.mp3' };
+  var SOUNDS = { meow: 'meow.mp3', meow2: 'meow2.mp3', purr: 'purr.mp3' };
   var actx = null, bufs = {}, tags = {};
   function unlockAudio() {
     if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
@@ -513,7 +513,7 @@ h2.sec{margin:0;font-size:15px;font-weight:400}
     if (s.score > s.best) s.best = s.score;
     toast((n > 0 ? '+' : '') + n + (label ? ' ' + label : ''), n > 0);
     var after = levelOf(s.score);
-    if (after > before) later('lvup', 900, function () { toast('升級！' + LEVELS[after][1], true); play('chirp'); });
+    if (after > before) later('lvup', 900, function () { toast('升級！' + LEVELS[after][1], true); play('meow2'); });
   }
 
   function newWish() {
@@ -551,7 +551,7 @@ h2.sec{margin:0;font-size:15px;font-weight:400}
 
   function celebrate() {
     if (s.mode === 'sleep') return;
-    play('chirp');
+    play('meow2');
     later('celebrate', 900, function () {
       s.pose = 'roll'; s.mode = 'happy'; say(pick(LINES.good)); flash('stars'); render();
       later('unroll', 2400, function () { s.pose = null; s.mode = 'idle'; render(); });
@@ -603,7 +603,7 @@ h2.sec{margin:0;font-size:15px;font-weight:400}
       if (s.energy >= 90 && wished !== 'sleep') { say('豆包還不睏啦'); render(); return; }
       result = resolveWish('sleep');
       s.mode = 'sleep'; fxLayer.innerHTML = ''; hand.setAttribute('hidden', ''); say(pick(LINES.sleep));
-      if (result === 1) play('chirp');
+      if (result === 1) play('purr');
       save(); render(); return;
     }
 
@@ -621,7 +621,7 @@ h2.sec{margin:0;font-size:15px;font-weight:400}
   document.querySelectorAll('.act').forEach(function (b) {
     b.addEventListener('click', function () { act(b.getAttribute('data-act')); });
   });
-  $('mute').addEventListener('click', function () { unlockAudio(); s.muted = !s.muted; save(); renderScore(); if (!s.muted) play('chirp'); });
+  $('mute').addEventListener('click', function () { unlockAudio(); s.muted = !s.muted; save(); renderScore(); if (!s.muted) play('meow2'); });
 
   setInterval(function () {
     tick++;
